@@ -6,11 +6,10 @@ import (
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
-	"github.com/todanni/template-repository/internal/config"
-	"github.com/todanni/template-repository/internal/database"
-	"github.com/todanni/template-repository/internal/repository"
-	"github.com/todanni/template-repository/internal/server"
-	"github.com/todanni/template-repository/pkg/template"
+
+	"github.com/todanni/api/config"
+	"github.com/todanni/api/database"
+	"github.com/todanni/api/models"
 )
 
 func main() {
@@ -28,17 +27,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Perform any migrations needed to run the service
-	err = db.AutoMigrate(&template.Template{})
+	// Perform migrations
+	err = db.AutoMigrate(&models.User{}, &models.Dashboard{}, &models.Project{}, &models.Task{})
 	if err != nil {
-		log.Error(err)
+		log.Fatalf("couldn't auto migrate: %v", err)
 	}
 
 	// Initialise router
 	r := mux.NewRouter()
 
-	// Create servers by passing DB connection and router
-	server.NewTemplateService(repository.NewRepository(db), r)
+	// Initialise services
 
 	// Start the servers and listen
 	log.Fatal(http.ListenAndServe(":8083", r))
