@@ -8,6 +8,7 @@ const (
 
 func (s *projectService) routes() {
 	r := s.router.PathPrefix(APIPath).Subrouter()
+	r.Use(s.middleware.JwtMiddleware)
 
 	r.HandleFunc("/", s.ListProjectsHandler).Methods(http.MethodGet)
 	r.HandleFunc("/", s.CreateProjectHandler).Methods(http.MethodPost)

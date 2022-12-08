@@ -1,6 +1,8 @@
 package task
 
-import "net/http"
+import (
+	"net/http"
+)
 
 const (
 	APIPath = "/tasks"
@@ -8,6 +10,7 @@ const (
 
 func (s *taskService) routes() {
 	r := s.router.PathPrefix(APIPath).Subrouter()
+	r.Use(s.middleware.JwtMiddleware)
 
 	r.HandleFunc("/", s.ListTasksHandler).Methods(http.MethodGet)
 	r.HandleFunc("/", s.CreateTaskHandler).Methods(http.MethodPost)

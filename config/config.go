@@ -9,6 +9,7 @@ type Config struct {
 	DBUser     string `env:"POSTGRES_USER,required"`
 	DBPassword string `env:"POSTGRES_PASSWORD,required"`
 	DBName     string `env:"POSTGRES_NAME,required"`
+	SigningKey string `env:"SIGNING_KEY,required"`
 }
 
 func NewFromEnv() (Config, error) {
