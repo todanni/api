@@ -28,8 +28,9 @@ func (d dashboardRepo) DeleteDashboard(id uuid.UUID) (models.Dashboard, error) {
 }
 
 func (d dashboardRepo) ListDashboardsByUser(userID uint) ([]models.Dashboard, error) {
-	//TODO implement me
-	panic("implement me")
+	var user models.User
+	result := d.db.Model(&models.User{}).Preload("Dashboard.Members").First(&user, userID)
+	return user.Dashboards, result.Error
 }
 
 func NewDashboardRepository(db *gorm.DB) DashboardRepository {
