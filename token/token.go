@@ -68,7 +68,8 @@ func (t *ToDanniToken) GetUserID() uint {
 		return 0
 	}
 
-	return userID.(uint)
+	floatUserID := userID.(float64)
+	return uint(floatUserID)
 }
 
 func (t *ToDanniToken) SetDashboardPermissions(dashboards []models.Dashboard) *ToDanniToken {
