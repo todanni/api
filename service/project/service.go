@@ -96,7 +96,7 @@ func (s *projectService) CreateProjectHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if err = validation.ValidateStruct(createRequest,
+	if err = validation.ValidateStruct(&createRequest,
 		validation.Field(&createRequest.Name, validation.Required),
 	); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
