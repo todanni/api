@@ -4,12 +4,13 @@ import "github.com/caarlos0/env/v6"
 
 // Config contains the env variables needed to run the servers
 type Config struct {
-	DBHost     string `env:"POSTGRES_HOST,required"`
-	DBPort     int    `env:"POSTGRES_PORT,required"`
-	DBUser     string `env:"POSTGRES_USER,required"`
-	DBPassword string `env:"POSTGRES_PASSWORD,required"`
-	DBName     string `env:"POSTGRES_NAME,required"`
-	SigningKey string `env:"SIGNING_KEY,required"`
+	DBHost            string `env:"POSTGRES_HOST,required"`
+	DBPort            int    `env:"POSTGRES_PORT,required"`
+	DBUser            string `env:"POSTGRES_USER,required"`
+	DBPassword        string `env:"POSTGRES_PASSWORD,required"`
+	DBName            string `env:"POSTGRES_NAME,required"`
+	SigningKey        string `env:"SIGNING_KEY,required"`
+	GoogleCredentials string `env:"GOOGLE_CREDENTIALS,required"`
 }
 
 func NewFromEnv() (Config, error) {

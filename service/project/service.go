@@ -23,8 +23,61 @@ type ProjectsService interface {
 
 type projectService struct {
 	router     *mux.Router
-	middleware token.AuthMiddleware
 	repo       repository.ProjectRepository
+	middleware token.AuthMiddleware
+}
+
+func NewProjectService(router *mux.Router, mw token.AuthMiddleware, repo repository.ProjectRepository) ProjectsService {
+	service := &projectService{
+		router:     router,
+		repo:       repo,
+		middleware: mw,
+	}
+	service.routes()
+	return service
+}
+
+func (s *projectService) ListProjectsHandler(w http.ResponseWriter, r *http.Request) {
+	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
+
+	userID := accessToken.GetUserID()
+	if userID == 0 {
+		http.Error(w, "invalid user ID in token", http.StatusUnauthorized)
+		return
+	}
+
+	projects, err := s.repo.ListProjectsByUser(userID)
+	if err != nil {
+		http.Error(w, "couldn't retrieve projects", http.StatusInternalServerError)
+		return
+	}
+
+	var response []ListProjectsResponse
+	for _, project := range projects {
+		response = append(response, ListProjectsResponse{
+			ID:      project.ID,
+			Name:    project.Name,
+			Owner:   project.Owner,
+			Members: s.getMemberIDs(project.Members),
+		})
+	}
+
+	responseBody, err := json.Marshal(response)
+	if err != nil {
+		http.Error(w, "couldn't marshall body", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(responseBody)
+}
+
+func (s *projectService) getMemberIDs(members []models.User) []uint {
+	var ids []uint
+	for _, member := range members {
+		ids = append(ids, member.ID)
+	}
+	return ids
 }
 
 func (s *projectService) CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
@@ -74,7 +127,6 @@ func (s *projectService) CreateProjectHandler(w http.ResponseWriter, r *http.Req
 
 	w.Header().Add("Content-Type", "application/json")
 	w.Write(responseBody)
-
 }
 
 func (s *projectService) GetProjectHandler(w http.ResponseWriter, r *http.Request) {
@@ -87,22 +139,7 @@ func (s *projectService) UpdateProjectHandler(w http.ResponseWriter, r *http.Req
 	panic("implement me")
 }
 
-func (s *projectService) ListProjectsHandler(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (s *projectService) DeleteProjectHandler(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
 	panic("implement me")
-}
-
-func NewProjectService(router *mux.Router, mw token.AuthMiddleware, repo repository.ProjectRepository) ProjectsService {
-	service := &projectService{
-		router:     router,
-		repo:       repo,
-		middleware: mw,
-	}
-	service.routes()
-	return service
 }

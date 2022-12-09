@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
+	"github.com/todanni/api/repository"
 )
 
 type DashboardsService interface {
@@ -16,6 +18,16 @@ type DashboardsService interface {
 
 type dashboardService struct {
 	router *mux.Router
+	repo   repository.DashboardRepository
+}
+
+func NewDashboardService(r *mux.Router, repo repository.DashboardRepository) DashboardsService {
+	service := &dashboardService{
+		router: r,
+		repo:   repo,
+	}
+	service.routes()
+	return service
 }
 
 func (s *dashboardService) CreateDashboardHandler(w http.ResponseWriter, r *http.Request) {
@@ -41,12 +53,4 @@ func (s *dashboardService) ListDashboardsHandler(w http.ResponseWriter, r *http.
 func (s *dashboardService) DeleteDashboardHandler(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
 	panic("implement me")
-}
-
-func NewDashboardService(router *mux.Router) DashboardsService {
-	service := &dashboardService{
-		router: router,
-	}
-	service.routes()
-	return service
 }

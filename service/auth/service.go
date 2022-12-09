@@ -2,12 +2,15 @@ package auth
 
 import (
 	"context"
+	b64 "encoding/base64"
 	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+	scopes "google.golang.org/api/oauth2/v2"
 
 	"github.com/todanni/api/config"
 	"github.com/todanni/api/models"
@@ -31,22 +34,32 @@ type authService struct {
 
 func NewAuthService(
 	router *mux.Router,
-	conf config.Config,
+	cfg config.Config,
 	userRepo repository.UserRepository,
 	dashboardRepo repository.DashboardRepository,
 	projectRepo repository.ProjectRepository,
-	oauthConfig *oauth2.Config,
 ) AuthService {
 	server := &authService{
-		oauthConfig:   oauthConfig,
-		config:        conf,
+		config:        cfg,
 		router:        router,
 		userRepo:      userRepo,
 		dashboardRepo: dashboardRepo,
 		projectRepo:   projectRepo,
 	}
 	server.routes()
+	server.createOAuthConfig()
 	return server
+}
+
+func (s *authService) createOAuthConfig() {
+	// Create OAuth oauthConfig
+	decodedCredentials, err := b64.StdEncoding.DecodeString(s.config.GoogleCredentials)
+
+	oauthConfig, err := google.ConfigFromJSON(decodedCredentials, scopes.OpenIDScope, scopes.UserinfoEmailScope, scopes.UserinfoProfileScope)
+	if err != nil {
+		log.Fatalf("Unable to parse client secret file to oauthConfig: %v", err)
+	}
+	s.oauthConfig = oauthConfig
 }
 
 func (s *authService) CallbackHandler(w http.ResponseWriter, r *http.Request) {

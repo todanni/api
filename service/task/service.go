@@ -26,6 +26,16 @@ type taskService struct {
 	taskRepo   repository.TaskRepository
 }
 
+func NewTaskService(r *mux.Router, taskRepo repository.TaskRepository, mw token.AuthMiddleware) TasksService {
+	service := &taskService{
+		router:     r,
+		taskRepo:   taskRepo,
+		middleware: mw,
+	}
+	service.routes()
+	return service
+}
+
 func (s *taskService) CreateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	// Read the user's JWT and get the user ID from it
 	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
@@ -45,13 +55,13 @@ func (s *taskService) CreateTaskHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Check if the user belongs to the specified in the request project
-	if !accessToken.HasProjectPermission(createRequest.Project) {
+	if !accessToken.HasProjectPermission(createRequest.ProjectID) {
 		http.Error(w, "user unauthorized for this project", http.StatusForbidden)
 	}
 
 	if err = validation.ValidateStruct(createRequest,
 		validation.Field(&createRequest.Title, validation.Required),
-		validation.Field(&createRequest.Project, validation.Required),
+		validation.Field(&createRequest.ProjectID, validation.Required),
 		validation.Field(&createRequest.CreatedBy, validation.Required),
 	); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -63,7 +73,7 @@ func (s *taskService) CreateTaskHandler(w http.ResponseWriter, r *http.Request) 
 		Title:       createRequest.Title,
 		Description: createRequest.Description,
 		Done:        createRequest.Done,
-		Project:     createRequest.Project,
+		ProjectID:   createRequest.ProjectID,
 		CreatedBy:   userID,
 		AssignedTo:  createRequest.AssignedTo,
 		Deadline:    createRequest.Deadline,
@@ -84,6 +94,31 @@ func (s *taskService) CreateTaskHandler(w http.ResponseWriter, r *http.Request) 
 	w.Write(responseBody)
 }
 
+func (s *taskService) ListTasksHandler(w http.ResponseWriter, r *http.Request) {
+	// Read the user's JWT and get the user ID from it
+	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
+
+	userID := accessToken.GetUserID()
+	if userID == 0 {
+		http.Error(w, "invalid user ID in token", http.StatusUnauthorized)
+		return
+	}
+
+	tasks, err := s.taskRepo.ListTasksByUser(userID)
+	if err != nil {
+		http.Error(w, "couldn't look up tasks for user", http.StatusInternalServerError)
+		return
+	}
+	responseBody, err := json.Marshal(tasks)
+	if err != nil {
+		http.Error(w, "couldn't marshall body", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(responseBody)
+}
+
 func (s *taskService) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
 	panic("implement me")
@@ -94,22 +129,7 @@ func (s *taskService) UpdateTaskHandler(w http.ResponseWriter, r *http.Request) 
 	panic("implement me")
 }
 
-func (s *taskService) ListTasksHandler(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (s *taskService) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
 	panic("implement me")
-}
-
-func NewTaskService(router *mux.Router, taskRepo repository.TaskRepository, middleware token.AuthMiddleware) TasksService {
-	service := &taskService{
-		router:     router,
-		taskRepo:   taskRepo,
-		middleware: middleware,
-	}
-	service.routes()
-	return service
 }
