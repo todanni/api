@@ -5,8 +5,6 @@ import (
 	"errors"
 	"net/http"
 	"strings"
-
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -26,9 +24,7 @@ func NewAuthMiddleware(signingKey string) *AuthMiddleware {
 
 func (m *AuthMiddleware) JwtMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		accessToken, err := m.checkAuthHeader(r)
-		log.Info(err.Error())
 		if err != nil {
 			accessToken, err = m.checkCookieValue(r)
 		}
