@@ -32,7 +32,7 @@ func (s *UserRepositoryTestSuite) Test_CreateUser() {
 		FirstName:  "User",
 		LastName:   "Name",
 		Email:      email,
-		ProfilePic: "http://imgur.com/me.png",
+		ProfilePic: "https://imgur.com/me.png",
 	})
 	require.NoError(s.T(), err)
 	require.NotNil(s.T(), result)

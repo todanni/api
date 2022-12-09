@@ -11,6 +11,7 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	scopes "google.golang.org/api/oauth2/v2"
+	"gorm.io/gorm"
 
 	"github.com/todanni/api/config"
 	"github.com/todanni/api/models"
@@ -87,14 +88,8 @@ func (s *authService) CallbackHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Check if user exists
 	userRecord, err := s.userRepo.GetUserByEmail(userInfo.Email)
-	if err != nil {
-		log.Errorf("Couldn't check if user exists: %v", err)
-		http.Error(w, "some error with user", http.StatusInternalServerError)
-		return
-	}
-
-	// User doesn't exist, we have to create it
-	if userRecord.ID == 0 {
+	switch err {
+	case gorm.ErrRecordNotFound:
 		userRecord, err = s.userRepo.CreateUser(models.User{
 			FirstName:  userInfo.FirstName,
 			LastName:   userInfo.LastName,
@@ -106,6 +101,11 @@ func (s *authService) CallbackHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "couldn't create new user", http.StatusInternalServerError)
 			return
 		}
+	case nil:
+		break
+	default:
+		log.Errorf("Couldn't check if user exists: %v", err)
+		http.Error(w, "some error with user", http.StatusInternalServerError)
 	}
 
 	dashboards := make([]models.Dashboard, 0)
