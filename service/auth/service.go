@@ -128,7 +128,7 @@ func (s *authService) CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	accessToken.SetProjectsPermissions(projects)
 	accessToken.SetDashboardPermissions(dashboards)
 
-	signedToken, err := accessToken.SignToken(s.config.SigningKey)
+	signedToken, err := accessToken.SignToken([]byte(s.config.SigningKey))
 	if err != nil {
 		log.Errorf("Couldn't sign access token: %v", err)
 		http.Error(w, "couldn't create access token", http.StatusInternalServerError)

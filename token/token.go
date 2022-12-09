@@ -39,7 +39,7 @@ func NewAccessToken() *ToDanniToken {
 }
 
 // SignToken returns the
-func (t *ToDanniToken) SignToken(signingKey string) ([]byte, error) {
+func (t *ToDanniToken) SignToken(signingKey []byte) ([]byte, error) {
 	signed, err := jwt.Sign(t.token, jwt.WithKey(jwa.HS256, signingKey))
 	if err != nil {
 		return nil, err
