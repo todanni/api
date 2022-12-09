@@ -144,7 +144,7 @@ func (s *authService) CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.Header().Set("Content-Type", "application/json")
-	http.Redirect(w, r, "/tasks", http.StatusFound)
+	http.Redirect(w, r, "https://todanni.com/tasks", http.StatusFound)
 }
 
 type GoogleUserInfo struct {
