@@ -141,6 +141,7 @@ func (s *authService) CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		Value:    string(signedToken),
 		Path:     "/",
 		HttpOnly: true,
+		Domain:   "todanni.com",
 	})
 
 	w.Header().Set("Content-Type", "application/json")
