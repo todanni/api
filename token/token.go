@@ -49,7 +49,7 @@ func (t *ToDanniToken) SignToken(signingKey []byte) ([]byte, error) {
 }
 
 func (t *ToDanniToken) Parse(signedToken, signingKey string) error {
-	verifiedToken, err := jwt.Parse([]byte(signedToken), jwt.WithKey(jwa.HS256, signingKey))
+	verifiedToken, err := jwt.Parse([]byte(signedToken), jwt.WithKey(jwa.HS256, []byte(signingKey)))
 	if err != nil {
 		return err
 	}
