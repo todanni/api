@@ -25,7 +25,7 @@ func (r *userRepo) CreateUser(user models.User) (models.User, error) {
 }
 
 func (r *userRepo) GetUserByEmail(email string) (models.User, error) {
-	var result models.User
-	r.db.Where("email = ?", email).First(&result)
-	return result, nil
+	var user models.User
+	result := r.db.Where("email = ?", email).First(&user)
+	return user, result.Error
 }
