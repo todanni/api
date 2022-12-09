@@ -55,10 +55,12 @@ func (s *projectService) ListProjectsHandler(w http.ResponseWriter, r *http.Requ
 	var response []ListProjectsResponse
 	for _, project := range projects {
 		response = append(response, ListProjectsResponse{
-			ID:      project.ID,
-			Name:    project.Name,
-			Owner:   project.Owner,
-			Members: s.getMemberIDs(project.Members),
+			ID:        project.ID,
+			Name:      project.Name,
+			Owner:     project.Owner,
+			CreatedAt: project.CreatedAt,
+			UpdatedAt: project.UpdatedAt,
+			Members:   s.getMemberIDs(project.Members),
 		})
 	}
 
@@ -119,7 +121,16 @@ func (s *projectService) CreateProjectHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	responseBody, err := json.Marshal(project)
+	response := CreateProjectResponse{
+		ID:        project.ID,
+		CreatedAt: project.CreatedAt,
+		UpdatedAt: project.UpdatedAt,
+		Name:      project.Name,
+		Owner:     project.Owner,
+		Members:   s.getMemberIDs(project.Members),
+	}
+
+	responseBody, err := json.Marshal(response)
 	if err != nil {
 		http.Error(w, "couldn't marshall body", http.StatusInternalServerError)
 		return
