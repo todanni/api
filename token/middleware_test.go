@@ -8,38 +8,49 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/todanni/api/models"
 )
 
 type AuthMiddlewareTestSuite struct {
 	suite.Suite
-	signingKey string
+	token string
 }
-
-const (
-	token = ""
-)
 
 func dummyHandler(w http.ResponseWriter, r *http.Request) {}
 
 func (s *AuthMiddlewareTestSuite) SetupSuite() {
-	s.signingKey = ""
+	accessToken := NewAccessToken()
+	accessToken.SetUserID(1)
+
+	// Set a token with no projects
+	projects := make([]models.Project, 0)
+	accessToken.SetProjectsPermissions(projects)
+
+	// Set a token with no dashboards
+	dashboards := make([]models.Dashboard, 0)
+	accessToken.SetDashboardPermissions(dashboards)
+
+	signedToken, err := accessToken.SignToken([]byte(signingKey))
+	require.NoError(s.T(), err)
+	require.NotNil(s.T(), signedToken)
+	s.token = string(signedToken)
 }
 
 func (s *AuthMiddlewareTestSuite) Test_AccessToken_Good() {
 	router := mux.NewRouter()
 
-	mw := NewAuthMiddleware(s.signingKey)
+	mw := NewAuthMiddleware(signingKey)
 
 	router.Use(mw.JwtMiddleware)
 	router.HandleFunc("/", dummyHandler).Methods("GET")
 
 	rw := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "/", nil)
-	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Authorization", "Bearer "+s.token)
 
 	router.ServeHTTP(rw, req)
 	require.Equal(s.T(), 200, rw.Code)
-
 }
 
 func TestAuthMiddlewareTestSuite(t *testing.T) {

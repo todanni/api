@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -26,11 +28,12 @@ func (m *AuthMiddleware) JwtMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		accessToken, err := m.checkAuthHeader(r)
 		if err != nil {
+			log.Infof("couldn't find valid access token: %v", err)
 			accessToken, err = m.checkCookieValue(r)
 		}
 
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusForbidden)
+			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
 
