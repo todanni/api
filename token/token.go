@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwt"
-	"golang.org/x/exp/slices"
 
 	"github.com/todanni/api/models"
 )
@@ -82,6 +81,22 @@ func (t *ToDanniToken) SetDashboardPermissions(dashboards []models.Dashboard) *T
 	return t.setClaim("dashboards", userDashboardIDs)
 }
 
+func (t *ToDanniToken) HasDashboardPermission(dashboard uuid.UUID) bool {
+	dashboardsPermissions, ok := t.token.Get("dashboards")
+	if !ok {
+		return false
+	}
+
+	dashboardsPermissionsArray := dashboardsPermissions.([]interface{})
+
+	for _, value := range dashboardsPermissionsArray {
+		if value.(string) == dashboard.String() {
+			return true
+		}
+	}
+	return false
+}
+
 func (t *ToDanniToken) SetProjectsPermissions(projects []models.Project) *ToDanniToken {
 	userProjectIDs := make([]uint, 0)
 
@@ -92,24 +107,22 @@ func (t *ToDanniToken) SetProjectsPermissions(projects []models.Project) *ToDann
 	return t.setClaim("projects", userProjectIDs)
 }
 
-func (t *ToDanniToken) HasDashboardPermission(dashboard uuid.UUID) bool {
-	dashboardsPermissions, ok := t.token.Get("dashboards")
-	if !ok {
-		return false
-	}
-
-	dashboardsPermissionsArray := dashboardsPermissions.([]uuid.UUID)
-	return slices.Contains(dashboardsPermissionsArray, dashboard)
-}
-
 func (t *ToDanniToken) HasProjectPermission(project uint) bool {
 	projectPermissions, ok := t.token.Get("projects")
 	if !ok {
 		return false
 	}
 
-	dashboardsPermissionsArray := projectPermissions.([]uint)
-	return slices.Contains(dashboardsPermissionsArray, project)
+	projectsPermissionsArray := projectPermissions.([]interface{})
+
+	for _, permission := range projectsPermissionsArray {
+		projectID := permission.(float64)
+
+		if uint(projectID) == project {
+			return true
+		}
+	}
+	return false
 }
 
 func (t *ToDanniToken) setClaim(name string, value interface{}) *ToDanniToken {
