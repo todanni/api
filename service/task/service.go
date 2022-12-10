@@ -59,7 +59,7 @@ func (s *taskService) CreateTaskHandler(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "user unauthorized for this project", http.StatusForbidden)
 	}
 
-	if err = validation.ValidateStruct(createRequest,
+	if err = validation.ValidateStruct(&createRequest,
 		validation.Field(&createRequest.Title, validation.Required),
 		validation.Field(&createRequest.ProjectID, validation.Required),
 		validation.Field(&createRequest.CreatedBy, validation.Required),
