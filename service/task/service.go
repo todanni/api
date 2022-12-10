@@ -62,7 +62,6 @@ func (s *taskService) CreateTaskHandler(w http.ResponseWriter, r *http.Request) 
 	if err = validation.ValidateStruct(&createRequest,
 		validation.Field(&createRequest.Title, validation.Required),
 		validation.Field(&createRequest.ProjectID, validation.Required),
-		validation.Field(&createRequest.CreatedBy, validation.Required),
 	); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
