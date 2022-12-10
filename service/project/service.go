@@ -3,9 +3,11 @@ package project
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
 	"github.com/todanni/api/models"
@@ -19,6 +21,10 @@ type ProjectsService interface {
 	UpdateProjectHandler(w http.ResponseWriter, r *http.Request)
 	ListProjectsHandler(w http.ResponseWriter, r *http.Request)
 	DeleteProjectHandler(w http.ResponseWriter, r *http.Request)
+
+	ListProjectMembers(w http.ResponseWriter, r *http.Request)
+	AddProjectMember(w http.ResponseWriter, r *http.Request)
+	RemoveProjectMember(w http.ResponseWriter, r *http.Request)
 }
 
 type projectService struct {
@@ -141,16 +147,87 @@ func (s *projectService) CreateProjectHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (s *projectService) GetProjectHandler(w http.ResponseWriter, r *http.Request) {
+	// Get the project ID from the request
+	params := mux.Vars(r)
+	projectID := params["id"]
+
+	projectIDStr, err := strconv.ParseUint(projectID, 10, 32)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "invalid project ID", http.StatusBadRequest)
+		return
+	}
+
+	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
+	if !accessToken.HasProjectPermission(uint(projectIDStr)) {
+		http.Error(w, "you don't have access to this project", http.StatusForbidden)
+		return
+	}
+
+	project, err := s.repo.GetProjectByID(projectID)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "couldn't find project", http.StatusNotFound)
+		return
+	}
+	responseBody, err := json.Marshal(project)
+	if err != nil {
+		http.Error(w, "couldn't marshall body", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(responseBody)
+}
+
+func (s *projectService) DeleteProjectHandler(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	projectID := params["id"]
+
+	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
+	userID := accessToken.GetUserID()
+	if userID == 0 {
+		http.Error(w, "invalid user ID in token", http.StatusUnauthorized)
+		return
+	}
+
+	project, err := s.repo.GetProjectByID(projectID)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "couldn't find project", http.StatusNotFound)
+		return
+	}
+
+	if project.Owner != userID {
+		http.Error(w, "only the project owner can delete a project", http.StatusForbidden)
+		return
+	}
+
+	err = s.repo.DeleteProject(projectID)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "couldn't delete project", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *projectService) ListProjectMembers(w http.ResponseWriter, r *http.Request) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *projectService) AddProjectMember(w http.ResponseWriter, r *http.Request) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *projectService) RemoveProjectMember(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
 	panic("implement me")
 }
 
 func (s *projectService) UpdateProjectHandler(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (s *projectService) DeleteProjectHandler(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
 	panic("implement me")
 }
