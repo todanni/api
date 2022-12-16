@@ -14,7 +14,7 @@ type ProjectRepository interface {
 	ListProjectsByUser(userID uint) ([]models.Project, error)
 	GetProjectByID(projectID string) (models.Project, error)
 	DeleteProject(projectID string) error
-	ListProjectMembers(projectID string) error
+	ListProjectMembers(projectID string) ([]models.User, error)
 	AddProjectMember(userID, prjID uint) error
 	RemoveProjectMember(userID, prjID uint) error
 }
@@ -62,9 +62,10 @@ func (r *projectRepo) GetProjectByID(projectID string) (models.Project, error) {
 	return project, result.Error
 }
 
-func (r *projectRepo) ListProjectMembers(projectID string) error {
-	//TODO implement me
-	panic("implement me")
+func (r *projectRepo) ListProjectMembers(projectID string) ([]models.User, error) {
+	var projectMembers []models.User
+	result := r.db.Raw("SELECT * FROM users INNER JOIN user_projects up on users.id = up.user_id WHERE project_id = ?", projectID).Scan(&projectMembers)
+	return projectMembers, result.Error
 }
 
 func (r *projectRepo) AddProjectMember(userID, projectID uint) error {

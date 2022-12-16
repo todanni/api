@@ -213,8 +213,36 @@ func (s *projectService) DeleteProjectHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (s *projectService) ListProjectMembers(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
-	panic("implement me")
+	params := mux.Vars(r)
+	projectID := params["id"]
+
+	projectIDStr, err := strconv.ParseUint(projectID, 10, 32)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "invalid project ID", http.StatusBadRequest)
+		return
+	}
+
+	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
+	if !accessToken.HasProjectPermission(uint(projectIDStr)) {
+		http.Error(w, "you don't have access to this project", http.StatusForbidden)
+		return
+	}
+
+	projectMembers, err := s.repo.ListProjectMembers(projectID)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "couldn't list project members", http.StatusInternalServerError)
+		return
+	}
+	responseBody, err := json.Marshal(projectMembers)
+	if err != nil {
+		http.Error(w, "couldn't marshall body", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(responseBody)
 }
 
 func (s *projectService) AddProjectMember(w http.ResponseWriter, r *http.Request) {
