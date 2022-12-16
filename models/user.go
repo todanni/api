@@ -1,14 +1,20 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type User struct {
-	gorm.Model
+	ID          string         `json:"id" gorm:"primarykey"`
+	DisplayName string         `json:"display_name"`
+	Email       string         `json:"email"`
+	ProfilePic  string         `json:"profile_pic"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `json:"deleted_at" gorm:"index" `
 
-	Email      string      `json:"email"`
-	FirstName  string      `json:"first_name"`
-	LastName   string      `json:"last_name"`
-	ProfilePic string      `json:"profile_pic"`
 	Dashboards []Dashboard `json:"-" gorm:"many2many:user_dashboards;"`
 	Projects   []Project   `json:"-" gorm:"many2many:user_projects;"`
 }

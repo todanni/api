@@ -57,18 +57,16 @@ func (t *ToDanniToken) Parse(signedToken, signingKey string) error {
 	return nil
 }
 
-func (t *ToDanniToken) SetUserID(id uint) {
+func (t *ToDanniToken) SetUserID(id string) {
 	t.setClaim("user_id", id)
 }
 
-func (t *ToDanniToken) GetUserID() uint {
+func (t *ToDanniToken) GetUserID() string {
 	userID, ok := t.token.Get("user_id")
 	if !ok {
-		return 0
+		return ""
 	}
-
-	floatUserID := userID.(float64)
-	return uint(floatUserID)
+	return userID.(string)
 }
 
 func (t *ToDanniToken) SetDashboardPermissions(dashboards []models.Dashboard) *ToDanniToken {

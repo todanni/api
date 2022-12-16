@@ -6,12 +6,15 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	scopes "google.golang.org/api/oauth2/v2"
 	"gorm.io/gorm"
+
+	"github.com/tjarratt/babble"
 
 	"github.com/todanni/api/config"
 	"github.com/todanni/api/models"
@@ -91,10 +94,10 @@ func (s *authService) CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	switch err {
 	case gorm.ErrRecordNotFound:
 		userRecord, err = s.userRepo.CreateUser(models.User{
-			FirstName:  userInfo.FirstName,
-			LastName:   userInfo.LastName,
-			Email:      userInfo.Email,
-			ProfilePic: userInfo.ProfilePic,
+			ID:          uuid.New().String(),
+			Email:       userInfo.Email,
+			ProfilePic:  userInfo.ProfilePic,
+			DisplayName: s.generateDisplayName(),
 		})
 		if err != nil {
 			log.Errorf("Couldn't create user: %v", err)
@@ -111,7 +114,7 @@ func (s *authService) CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	dashboards := make([]models.Dashboard, 0)
 	projects := make([]models.Project, 0)
 
-	if userRecord.ID != 0 {
+	if userRecord.ID != "" {
 		dashboards, err = s.dashboardRepo.ListDashboardsByUser(userRecord.ID)
 		if err != nil {
 			log.Error("couldn't look up user dashboards")
@@ -150,8 +153,6 @@ func (s *authService) CallbackHandler(w http.ResponseWriter, r *http.Request) {
 
 type GoogleUserInfo struct {
 	Email      string `json:"email"`
-	FirstName  string `json:"given_name"`
-	LastName   string `json:"family_name"`
 	ProfilePic string `json:"picture"`
 }
 
@@ -172,4 +173,9 @@ func (s *authService) getUserInfo(accessToken string) (*GoogleUserInfo, error) {
 	}
 
 	return &userInfo, nil
+}
+
+func (s *authService) generateDisplayName() string {
+	babbler := babble.NewBabbler()
+	return babbler.Babble()
 }

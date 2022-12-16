@@ -11,12 +11,12 @@ import (
 type ProjectRepository interface {
 	CreateProject(project models.Project) (models.Project, error)
 	UpdateProject(project models.Project) (models.Project, error)
-	ListProjectsByUser(userID uint) ([]models.Project, error)
+	ListProjectsByUser(userID string) ([]models.Project, error)
 	GetProjectByID(projectID string) (models.Project, error)
 	DeleteProject(projectID string) error
 	ListProjectMembers(projectID string) ([]models.User, error)
-	AddProjectMember(userID, prjID uint) error
-	RemoveProjectMember(userID, prjID uint) error
+	AddProjectMember(userID string, prjID uint) error
+	RemoveProjectMember(userID string, prjID uint) error
 }
 
 type projectRepo struct {
@@ -34,7 +34,7 @@ func NewProjectRepository(db *gorm.DB) ProjectRepository {
 	}
 }
 
-func (r *projectRepo) ListProjectsByUser(userID uint) ([]models.Project, error) {
+func (r *projectRepo) ListProjectsByUser(userID string) ([]models.Project, error) {
 	var Projects []models.Project
 	var user models.User
 
@@ -68,17 +68,15 @@ func (r *projectRepo) ListProjectMembers(projectID string) ([]models.User, error
 	return projectMembers, result.Error
 }
 
-func (r *projectRepo) AddProjectMember(userID, projectID uint) error {
-	return r.db.Model(&models.User{
-		Model: gorm.Model{ID: userID}}).
+func (r *projectRepo) AddProjectMember(userID string, projectID uint) error {
+	return r.db.Model(&models.User{ID: userID}).
 		Association("Projects").
 		Append(&models.Project{
 			Model: gorm.Model{ID: projectID}})
 }
 
-func (r *projectRepo) RemoveProjectMember(userID, projectID uint) error {
-	return r.db.Model(&models.User{
-		Model: gorm.Model{ID: userID}}).
+func (r *projectRepo) RemoveProjectMember(userID string, projectID uint) error {
+	return r.db.Model(&models.User{ID: userID}).
 		Association("Projects").
 		Delete(&models.Project{
 			Model: gorm.Model{ID: projectID}})

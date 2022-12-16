@@ -10,7 +10,7 @@ import (
 type DashboardRepository interface {
 	CreateDashboard(dashboard models.Dashboard) (models.Dashboard, error)
 	DeleteDashboard(id uuid.UUID) (models.Dashboard, error)
-	ListDashboardsByUser(userID uint) ([]models.Dashboard, error)
+	ListDashboardsByUser(userID string) ([]models.Dashboard, error)
 }
 
 type dashboardRepo struct {
@@ -27,7 +27,7 @@ func (d dashboardRepo) DeleteDashboard(id uuid.UUID) (models.Dashboard, error) {
 	panic("implement me")
 }
 
-func (d dashboardRepo) ListDashboardsByUser(userID uint) ([]models.Dashboard, error) {
+func (d dashboardRepo) ListDashboardsByUser(userID string) ([]models.Dashboard, error) {
 	var user models.User
 	result := d.db.Model(&models.User{}).Preload("Dashboard.Members").First(&user, userID)
 	return user.Dashboards, result.Error

@@ -8,7 +8,6 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 
 	"github.com/todanni/api/models"
 	"github.com/todanni/api/repository"
@@ -47,7 +46,7 @@ func (s *projectService) ListProjectsHandler(w http.ResponseWriter, r *http.Requ
 	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
 
 	userID := accessToken.GetUserID()
-	if userID == 0 {
+	if userID == "" {
 		http.Error(w, "invalid user ID in token", http.StatusUnauthorized)
 		return
 	}
@@ -79,8 +78,8 @@ func (s *projectService) ListProjectsHandler(w http.ResponseWriter, r *http.Requ
 	w.Write(responseBody)
 }
 
-func (s *projectService) getMemberIDs(members []models.User) []uint {
-	var ids []uint
+func (s *projectService) getMemberIDs(members []models.User) []string {
+	var ids []string
 	for _, member := range members {
 		ids = append(ids, member.ID)
 	}
@@ -91,7 +90,7 @@ func (s *projectService) CreateProjectHandler(w http.ResponseWriter, r *http.Req
 	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
 
 	userID := accessToken.GetUserID()
-	if userID == 0 {
+	if userID == "" {
 		http.Error(w, "invalid user ID in token", http.StatusUnauthorized)
 		return
 	}
@@ -115,9 +114,7 @@ func (s *projectService) CreateProjectHandler(w http.ResponseWriter, r *http.Req
 		Owner: userID,
 		Members: []models.User{
 			{
-				Model: gorm.Model{
-					ID: userID,
-				},
+				ID: userID,
 			},
 		},
 	})
@@ -184,7 +181,7 @@ func (s *projectService) DeleteProjectHandler(w http.ResponseWriter, r *http.Req
 
 	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
 	userID := accessToken.GetUserID()
-	if userID == 0 {
+	if userID == "" {
 		http.Error(w, "invalid user ID in token", http.StatusUnauthorized)
 		return
 	}
@@ -237,11 +234,9 @@ func (s *projectService) ListProjectMembers(w http.ResponseWriter, r *http.Reque
 	var response []ListProjectMembersResponse
 	for _, member := range projectMembers {
 		response = append(response, ListProjectMembersResponse{
-			ID:         member.ID,
-			Email:      member.Email,
-			FirstName:  member.FirstName,
-			LastName:   member.LastName,
-			ProfilePic: member.ProfilePic,
+			ID:          member.ID,
+			ProfilePic:  member.ProfilePic,
+			DisplayName: member.DisplayName,
 		})
 	}
 
@@ -258,11 +253,11 @@ func (s *projectService) ListProjectMembers(w http.ResponseWriter, r *http.Reque
 func (s *projectService) AddProjectMember(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	projectIDStr := params["project_id"]
-	memberIDStr := params["member_id"]
+	memberID := params["member_id"]
 
 	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
 	userID := accessToken.GetUserID()
-	if userID == 0 {
+	if userID == "" {
 		http.Error(w, "invalid user ID in token", http.StatusUnauthorized)
 		return
 	}
@@ -279,14 +274,7 @@ func (s *projectService) AddProjectMember(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	memberID, err := strconv.ParseUint(memberIDStr, 10, 32)
-	if err != nil {
-		log.Error(err)
-		http.Error(w, "invalid member ID", http.StatusBadRequest)
-		return
-	}
-
-	if userID == uint(memberID) {
+	if userID == memberID {
 		http.Error(w, "you're already a part of this project", http.StatusBadRequest)
 		return
 	}
@@ -298,7 +286,7 @@ func (s *projectService) AddProjectMember(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err = s.repo.AddProjectMember(uint(memberID), uint(projectID))
+	err = s.repo.AddProjectMember(memberID, uint(projectID))
 	if err != nil {
 		log.Error(err)
 		http.Error(w, "couldn't add member to project", http.StatusInternalServerError)
@@ -310,11 +298,11 @@ func (s *projectService) AddProjectMember(w http.ResponseWriter, r *http.Request
 func (s *projectService) RemoveProjectMember(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	projectIDStr := params["project_id"]
-	memberIDStr := params["member_id"]
+	memberID := params["member_id"]
 
 	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
 	userID := accessToken.GetUserID()
-	if userID == 0 {
+	if userID == "" {
 		http.Error(w, "invalid user ID in token", http.StatusUnauthorized)
 		return
 	}
@@ -331,14 +319,7 @@ func (s *projectService) RemoveProjectMember(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	memberID, err := strconv.ParseUint(memberIDStr, 10, 32)
-	if err != nil {
-		log.Error(err)
-		http.Error(w, "invalid member ID", http.StatusBadRequest)
-		return
-	}
-
-	if userID == uint(memberID) {
+	if userID == memberID {
 		http.Error(w, "you're already a part of this project", http.StatusBadRequest)
 		return
 	}
@@ -350,7 +331,7 @@ func (s *projectService) RemoveProjectMember(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err = s.repo.RemoveProjectMember(uint(memberID), uint(projectID))
+	err = s.repo.RemoveProjectMember(memberID, uint(projectID))
 	if err != nil {
 		log.Error(err)
 		http.Error(w, "couldn't remove member from project", http.StatusInternalServerError)
