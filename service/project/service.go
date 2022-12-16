@@ -218,13 +218,107 @@ func (s *projectService) ListProjectMembers(w http.ResponseWriter, r *http.Reque
 }
 
 func (s *projectService) AddProjectMember(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
-	panic("implement me")
+	params := mux.Vars(r)
+	projectIDStr := params["project_id"]
+	memberIDStr := params["member_id"]
+
+	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
+	userID := accessToken.GetUserID()
+	if userID == 0 {
+		http.Error(w, "invalid user ID in token", http.StatusUnauthorized)
+		return
+	}
+
+	project, err := s.repo.GetProjectByID(projectIDStr)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "couldn't find project", http.StatusNotFound)
+		return
+	}
+
+	if project.Owner != userID {
+		http.Error(w, "only the project owner can add members to a project", http.StatusForbidden)
+		return
+	}
+
+	memberID, err := strconv.ParseUint(memberIDStr, 10, 32)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "invalid member ID", http.StatusBadRequest)
+		return
+	}
+
+	if userID == uint(memberID) {
+		http.Error(w, "you're already a part of this project", http.StatusBadRequest)
+		return
+	}
+
+	projectID, err := strconv.ParseUint(projectIDStr, 10, 32)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "invalid member ID", http.StatusBadRequest)
+		return
+	}
+
+	err = s.repo.AddProjectMember(uint(memberID), uint(projectID))
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "couldn't add member to project", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func (s *projectService) RemoveProjectMember(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
-	panic("implement me")
+	params := mux.Vars(r)
+	projectIDStr := params["project_id"]
+	memberIDStr := params["member_id"]
+
+	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
+	userID := accessToken.GetUserID()
+	if userID == 0 {
+		http.Error(w, "invalid user ID in token", http.StatusUnauthorized)
+		return
+	}
+
+	project, err := s.repo.GetProjectByID(projectIDStr)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "couldn't find project", http.StatusNotFound)
+		return
+	}
+
+	if project.Owner != userID {
+		http.Error(w, "only the project owner can add members to a project", http.StatusForbidden)
+		return
+	}
+
+	memberID, err := strconv.ParseUint(memberIDStr, 10, 32)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "invalid member ID", http.StatusBadRequest)
+		return
+	}
+
+	if userID == uint(memberID) {
+		http.Error(w, "you're already a part of this project", http.StatusBadRequest)
+		return
+	}
+
+	projectID, err := strconv.ParseUint(projectIDStr, 10, 32)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "invalid member ID", http.StatusBadRequest)
+		return
+	}
+
+	err = s.repo.RemoveProjectMember(uint(memberID), uint(projectID))
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "couldn't remove member from project", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func (s *projectService) UpdateProjectHandler(w http.ResponseWriter, r *http.Request) {
