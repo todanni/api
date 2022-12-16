@@ -13,7 +13,7 @@ type Task struct {
 	Done        bool           `json:"done"`
 	Project     Project        `json:"-"`
 	ProjectID   uint           `json:"project_id"`
-	CreatedBy   uint           `json:"created_by"`
+	CreatedBy   string         `json:"created_by"`
 	AssignedTo  uint           `json:"assigned_to"`
 	Deadline    time.Time      `json:"deadline"`
 	CreatedAt   time.Time      `json:"created_at"`

@@ -41,7 +41,7 @@ func (s *taskService) CreateTaskHandler(w http.ResponseWriter, r *http.Request) 
 	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
 
 	userID := accessToken.GetUserID()
-	if userID == 0 {
+	if userID == "" {
 		http.Error(w, "invalid user ID in token", http.StatusUnauthorized)
 		return
 	}
@@ -98,7 +98,7 @@ func (s *taskService) ListTasksHandler(w http.ResponseWriter, r *http.Request) {
 	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
 
 	userID := accessToken.GetUserID()
-	if userID == 0 {
+	if userID == "" {
 		http.Error(w, "invalid user ID in token", http.StatusUnauthorized)
 		return
 	}
