@@ -1,6 +1,8 @@
 package project
 
-import "time"
+import (
+	"time"
+)
 
 type CreateProjectRequest struct {
 	Name string `json:"name"`
@@ -12,7 +14,6 @@ type CreateProjectResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	Name      string    `json:"name"`
 	Owner     uint      `json:"owner"`
-	Members   []uint    `json:"members"`
 }
 
 type ListProjectsResponse struct {
@@ -21,5 +22,17 @@ type ListProjectsResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	Name      string    `json:"name"`
 	Owner     uint      `json:"owner"`
-	Members   []uint    `json:"members"`
+}
+
+type UpdateProjectRequest struct {
+	Name  string `json:"name"`
+	Owner uint   `json:"owner"`
+}
+
+type ListProjectMembersResponse struct {
+	ID         uint   `json:"id"`
+	Email      string `json:"email"`
+	FirstName  string `json:"first_name"`
+	LastName   string `json:"last_name"`
+	ProfilePic string `json:"profile_pic"`
 }
