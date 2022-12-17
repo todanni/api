@@ -57,6 +57,7 @@ func (s *taskService) CreateTaskHandler(w http.ResponseWriter, r *http.Request) 
 	// Check if the user belongs to the specified in the request project
 	if !accessToken.HasProjectPermission(createRequest.ProjectID) {
 		http.Error(w, "user unauthorized for this project", http.StatusForbidden)
+		return
 	}
 
 	if err = validation.ValidateStruct(&createRequest,
