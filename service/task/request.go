@@ -11,7 +11,7 @@ type CreateTaskRequest struct {
 	Deadline    time.Time `json:"deadline"`
 	ProjectID   uint      `json:"project_id"`
 	CreatedBy   uint      `json:"created_by"`
-	AssignedTo  uint      `json:"assigned_to"`
+	AssignedTo  string    `json:"assigned_to"`
 }
 
 type UpdateTaskRequest struct {
