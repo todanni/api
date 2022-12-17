@@ -3,6 +3,7 @@ package task
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/gorilla/mux"
@@ -161,6 +162,50 @@ func (s *taskService) UpdateTaskHandler(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "invalid user ID in token", http.StatusUnauthorized)
 		return
 	}
+	params := mux.Vars(r)
+	taskID := params["id"]
+	task, err := s.taskRepo.GetTaskByID(taskID)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "couldn't look up task", http.StatusInternalServerError)
+		return
+	}
+
+	if !accessToken.HasProjectPermission(task.ProjectID) {
+		http.Error(w, "you don't have access", http.StatusForbidden)
+		return
+	}
+
+	var updateRequest UpdateTaskRequest
+	err = json.NewDecoder(r.Body).Decode(&updateRequest)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	taskIDUint, err := strconv.ParseUint(taskID, 10, 0)
+	if err != nil {
+		http.Error(w, "invalid task ID", http.StatusBadRequest)
+		return
+	}
+
+	updatedTask, err := s.taskRepo.UpdateTask(models.Task{
+		ID:          uint(taskIDUint),
+		Title:       updateRequest.Title,
+		Description: updateRequest.Description,
+		Done:        updateRequest.Done,
+		AssignedTo:  updateRequest.AssignedTo,
+		Deadline:    updateRequest.Deadline,
+	})
+
+	responseBody, err := json.Marshal(updatedTask)
+	if err != nil {
+		http.Error(w, "couldn't marshall body", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(responseBody)
 }
 
 func (s *taskService) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {

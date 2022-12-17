@@ -7,8 +7,9 @@ import (
 )
 
 type TaskRepository interface {
-	GetTaskByID(taskID string) (models.Task, error)
 	CreateTask(task models.Task) (models.Task, error)
+	GetTaskByID(taskID string) (models.Task, error)
+	UpdateTask(task models.Task) (models.Task, error)
 	DeleteTask(taskID string) error
 	ListTasksByUser(userID string) ([]models.Task, error)
 	ListTasksByProject(projectID string) ([]models.Task, error)
@@ -43,6 +44,11 @@ func (r *taskRepo) ListTasksByUser(userID string) ([]models.Task, error) {
 
 func (r *taskRepo) CreateTask(task models.Task) (models.Task, error) {
 	result := r.db.Create(&task)
+	return task, result.Error
+}
+
+func (r *taskRepo) UpdateTask(task models.Task) (models.Task, error) {
+	result := r.db.Model(&task).Updates(task)
 	return task, result.Error
 }
 

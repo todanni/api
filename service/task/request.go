@@ -18,6 +18,6 @@ type UpdateTaskRequest struct {
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
 	Done        bool      `json:"done"`
-	AssignedTo  uint      `json:"assigned_to"`
+	AssignedTo  string    `json:"assigned_to"`
 	Deadline    time.Time `json:"deadline"`
 }
