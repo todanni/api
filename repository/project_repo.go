@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"errors"
-
 	"gorm.io/gorm"
 
 	"github.com/todanni/api/models"
@@ -35,15 +33,11 @@ func NewProjectRepository(db *gorm.DB) ProjectRepository {
 }
 
 func (r *projectRepo) ListProjectsByUser(userID string) ([]models.Project, error) {
-	var Projects []models.Project
-	var user models.User
-
-	result := r.db.Model(&models.User{}).Preload("Projects.Members").First(&user, userID)
-	if result.Error != nil {
-		return Projects, errors.New("couldn't find Projects")
-	}
-
-	return user.Projects, nil
+	var projects []models.Project
+	result := r.db.Raw(
+		"SELECT * FROM projects INNER JOIN user_projects up on projects.id = up.project_id WHERE user_id=?", userID).
+		Scan(&projects)
+	return projects, result.Error
 }
 
 func (r *projectRepo) CreateProject(project models.Project) (models.Project, error) {
@@ -64,7 +58,8 @@ func (r *projectRepo) GetProjectByID(projectID string) (models.Project, error) {
 
 func (r *projectRepo) ListProjectMembers(projectID string) ([]models.User, error) {
 	var projectMembers []models.User
-	result := r.db.Raw("SELECT * FROM users INNER JOIN user_projects up on users.id = up.user_id WHERE project_id = ?", projectID).Scan(&projectMembers)
+	result := r.db.Raw("SELECT * FROM users INNER JOIN user_projects up on users.id = up.user_id WHERE project_id = ?", projectID).
+		Scan(&projectMembers)
 	return projectMembers, result.Error
 }
 
