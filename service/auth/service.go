@@ -5,16 +5,16 @@ import (
 	b64 "encoding/base64"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/goombaio/namegenerator"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	scopes "google.golang.org/api/oauth2/v2"
 	"gorm.io/gorm"
-
-	"github.com/tjarratt/babble"
 
 	"github.com/todanni/api/config"
 	"github.com/todanni/api/models"
@@ -176,6 +176,7 @@ func (s *authService) getUserInfo(accessToken string) (*GoogleUserInfo, error) {
 }
 
 func (s *authService) generateDisplayName() string {
-	babbler := babble.NewBabbler()
-	return babbler.Babble()
+	seed := time.Now().UTC().UnixNano()
+	nameGenerator := namegenerator.NewNameGenerator(seed)
+	return nameGenerator.Generate()
 }

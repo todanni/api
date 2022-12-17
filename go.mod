@@ -6,12 +6,12 @@ require (
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
 	github.com/google/uuid v1.3.0
+	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
 	github.com/gorilla/mux v1.8.0
 	github.com/lestrrat-go/jwx/v2 v2.0.8
 	github.com/ory/dockertest/v3 v3.9.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.1
-	github.com/tjarratt/babble v0.0.0-20210505082055-cbca2a4833c1
 	golang.org/x/oauth2 v0.3.0
 	google.golang.org/api v0.104.0
 	gorm.io/driver/postgres v1.4.5
@@ -58,8 +58,6 @@ require (
 	github.com/lestrrat-go/option v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect
-	github.com/onsi/ginkgo v1.16.5 // indirect
-	github.com/onsi/gomega v1.24.2 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/opencontainers/runc v1.1.2 // indirect
