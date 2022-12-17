@@ -21,11 +21,6 @@ type projectRepo struct {
 	db *gorm.DB
 }
 
-func (r *projectRepo) UpdateProject(project models.Project) (models.Project, error) {
-	// TODO: decide what we want to update this way
-	return project, nil
-}
-
 func NewProjectRepository(db *gorm.DB) ProjectRepository {
 	return &projectRepo{
 		db: db,
@@ -75,4 +70,9 @@ func (r *projectRepo) RemoveProjectMember(userID string, projectID uint) error {
 		Association("Projects").
 		Delete(&models.Project{
 			Model: gorm.Model{ID: projectID}})
+}
+
+func (r *projectRepo) UpdateProject(project models.Project) (models.Project, error) {
+	// TODO: decide what we want to update this way
+	return project, nil
 }

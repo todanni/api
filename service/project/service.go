@@ -78,14 +78,6 @@ func (s *projectService) ListProjectsHandler(w http.ResponseWriter, r *http.Requ
 	w.Write(responseBody)
 }
 
-func (s *projectService) getMemberIDs(members []models.User) []string {
-	var ids []string
-	for _, member := range members {
-		ids = append(ids, member.ID)
-	}
-	return ids
-}
-
 func (s *projectService) CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
 	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
 

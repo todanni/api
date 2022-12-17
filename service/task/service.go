@@ -6,6 +6,7 @@ import (
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/todanni/api/models"
 	"github.com/todanni/api/repository"
@@ -120,16 +121,79 @@ func (s *taskService) ListTasksHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *taskService) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
-	panic("implement me")
+	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
+
+	userID := accessToken.GetUserID()
+	if userID == "" {
+		http.Error(w, "invalid user ID in token", http.StatusUnauthorized)
+		return
+	}
+	params := mux.Vars(r)
+	taskID := params["id"]
+
+	task, err := s.taskRepo.GetTaskByID(taskID)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "couldn't look up task", http.StatusInternalServerError)
+		return
+	}
+
+	if !accessToken.HasProjectPermission(task.ProjectID) {
+		http.Error(w, "you don't have access", http.StatusForbidden)
+		return
+	}
+
+	responseBody, err := json.Marshal(task)
+	if err != nil {
+		http.Error(w, "couldn't marshall body", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(responseBody)
 }
 
 func (s *taskService) UpdateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
-	panic("implement me")
+	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
+
+	userID := accessToken.GetUserID()
+	if userID == "" {
+		http.Error(w, "invalid user ID in token", http.StatusUnauthorized)
+		return
+	}
 }
 
 func (s *taskService) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
-	panic("implement me")
+	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
+
+	userID := accessToken.GetUserID()
+	if userID == "" {
+		http.Error(w, "invalid user ID in token", http.StatusUnauthorized)
+		return
+	}
+
+	params := mux.Vars(r)
+	taskID := params["id"]
+
+	// Only the person who created the task can delete it
+	task, err := s.taskRepo.GetTaskByID(taskID)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "couldn't find task", http.StatusNotFound)
+		return
+	}
+
+	if task.CreatedBy != userID {
+		log.Error(err)
+		http.Error(w, "only the person who created the task can delete it", http.StatusForbidden)
+		return
+	}
+
+	err = s.taskRepo.DeleteTask(taskID)
+	if err != nil {
+		log.Error()
+		http.Error(w, "couldn't delete task", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
