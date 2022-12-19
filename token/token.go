@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwt"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/todanni/api/models"
 )
@@ -19,7 +20,7 @@ const (
 )
 
 var (
-	ExpirationTime = time.Now().Add(60 * time.Minute)
+	ExpirationTime = 24 * time.Hour
 )
 
 type ToDanniToken struct {
@@ -32,7 +33,7 @@ func NewAccessToken() *ToDanniToken {
 	t, _ := jwt.NewBuilder().
 		Issuer(ToDanniTokenIssuer).
 		IssuedAt(time.Now()).
-		Expiration(ExpirationTime).
+		Expiration(time.Now().Add(ExpirationTime)).
 		Build()
 	return &ToDanniToken{token: t}
 }
@@ -50,6 +51,7 @@ func (t *ToDanniToken) SignToken(signingKey []byte) ([]byte, error) {
 func (t *ToDanniToken) Parse(signedToken, signingKey string) error {
 	verifiedToken, err := jwt.Parse([]byte(signedToken), jwt.WithKey(jwa.HS256, []byte(signingKey)))
 	if err != nil {
+		log.Error(err)
 		return err
 	}
 

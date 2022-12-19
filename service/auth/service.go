@@ -93,12 +93,7 @@ func (s *authService) CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	userRecord, err := s.userRepo.GetUserByEmail(userInfo.Email)
 	switch err {
 	case gorm.ErrRecordNotFound:
-		userRecord, err = s.userRepo.CreateUser(models.User{
-			ID:          uuid.New().String(),
-			Email:       userInfo.Email,
-			ProfilePic:  userInfo.ProfilePic,
-			DisplayName: s.generateDisplayName(),
-		})
+		userRecord, err = s.userRepo.CreateUser(s.generateNewUserRecord(userInfo.Email, userInfo.ProfilePic))
 		if err != nil {
 			log.Errorf("Couldn't create user: %v", err)
 			http.Error(w, "couldn't create new user", http.StatusInternalServerError)
@@ -175,8 +170,20 @@ func (s *authService) getUserInfo(accessToken string) (*GoogleUserInfo, error) {
 	return &userInfo, nil
 }
 
-func (s *authService) generateDisplayName() string {
+func (s *authService) generateNewUserRecord(email, pic string) models.User {
+	// generate display name
 	seed := time.Now().UTC().UnixNano()
 	nameGenerator := namegenerator.NewNameGenerator(seed)
-	return nameGenerator.Generate()
+	displayName := nameGenerator.Generate()
+
+	// generate ID
+	id := uuid.New().String()
+	id = id[:8]
+
+	return models.User{
+		ID:          id,
+		DisplayName: displayName,
+		Email:       email,
+		ProfilePic:  pic,
+	}
 }

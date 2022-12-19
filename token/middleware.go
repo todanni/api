@@ -55,12 +55,7 @@ func (m *AuthMiddleware) checkAuthHeader(r *http.Request) (*ToDanniToken, error)
 	}
 
 	requestToken := parts[1]
-	accessToken := &ToDanniToken{}
-	err := accessToken.Parse(requestToken, m.signingKey)
-	if err != nil {
-		return nil, err
-	}
-	return accessToken, nil
+	return m.parseToken(requestToken)
 }
 
 func (m *AuthMiddleware) checkCookieValue(r *http.Request) (*ToDanniToken, error) {
@@ -69,11 +64,11 @@ func (m *AuthMiddleware) checkCookieValue(r *http.Request) (*ToDanniToken, error
 	if err != nil {
 		return nil, errors.New("access token cookie wasn't set")
 	}
+	return m.parseToken(accessTokenCookie.Value)
+}
 
+func (m *AuthMiddleware) parseToken(tokenString string) (*ToDanniToken, error) {
 	accessToken := &ToDanniToken{}
-	err = accessToken.Parse(accessTokenCookie.Value, m.signingKey)
-	if err != nil {
-		return nil, err
-	}
-	return accessToken, nil
+	err := accessToken.Parse(tokenString, m.signingKey)
+	return accessToken, err
 }
