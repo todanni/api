@@ -2,6 +2,7 @@ package repository
 
 import (
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/todanni/api/models"
 )
@@ -48,7 +49,7 @@ func (r *taskRepo) CreateTask(task models.Task) (models.Task, error) {
 }
 
 func (r *taskRepo) UpdateTask(task models.Task) (models.Task, error) {
-	result := r.db.Model(&task).Updates(task)
+	result := r.db.Model(&task).Clauses(clause.Returning{}).Updates(task)
 	return task, result.Error
 }
 
