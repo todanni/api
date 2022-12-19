@@ -2,6 +2,7 @@ package repository
 
 import (
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/todanni/api/models"
 )
@@ -73,6 +74,6 @@ func (r *projectRepo) RemoveProjectMember(userID string, projectID uint) error {
 }
 
 func (r *projectRepo) UpdateProject(project models.Project) (models.Project, error) {
-	// TODO: decide what we want to update this way
-	return project, nil
+	result := r.db.Model(&project).Clauses(clause.Returning{}).Updates(project)
+	return project, result.Error
 }

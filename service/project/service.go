@@ -8,6 +8,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 
 	"github.com/todanni/api/models"
 	"github.com/todanni/api/repository"
@@ -333,6 +334,61 @@ func (s *projectService) RemoveProjectMember(w http.ResponseWriter, r *http.Requ
 }
 
 func (s *projectService) UpdateProjectHandler(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
-	panic("implement me")
+	params := mux.Vars(r)
+	projectIDStr := params["project_id"]
+
+	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
+	userID := accessToken.GetUserID()
+	if userID == "" {
+		http.Error(w, "invalid user ID in token", http.StatusUnauthorized)
+		return
+	}
+
+	project, err := s.repo.GetProjectByID(projectIDStr)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "couldn't find project", http.StatusNotFound)
+		return
+	}
+
+	if project.Owner != userID {
+		http.Error(w, "only the project owner can update a project", http.StatusForbidden)
+		return
+	}
+
+	var updateRequest UpdateProjectRequest
+	err = json.NewDecoder(r.Body).Decode(&updateRequest)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	projectID, err := strconv.ParseUint(projectIDStr, 10, 32)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "invalid member ID", http.StatusBadRequest)
+		return
+	}
+
+	updatedProject, err := s.repo.UpdateProject(models.Project{
+		Model: gorm.Model{
+			ID: uint(projectID),
+		},
+		Name:  updateRequest.Name,
+		Owner: updateRequest.Owner,
+	})
+
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "couldn't update project", http.StatusInternalServerError)
+		return
+	}
+
+	responseBody, err := json.Marshal(updatedProject)
+	if err != nil {
+		http.Error(w, "couldn't marshall body", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(responseBody)
 }

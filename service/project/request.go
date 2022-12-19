@@ -26,7 +26,7 @@ type ListProjectsResponse struct {
 
 type UpdateProjectRequest struct {
 	Name  string `json:"name"`
-	Owner uint   `json:"owner"`
+	Owner string `json:"owner"`
 }
 
 type ListProjectMembersResponse struct {
