@@ -96,13 +96,14 @@ jobs:
           CORS_MAX_AGE: traefik.http.middlewares.${{ github.event.repository.name }}-cors.headers.accessControlMaxAge=100
           CORS_VARY: traefik.http.middlewares.${{ github.event.repository.name }}-cors.headers.addVaryHeader=true
           CORS_CRED: traefik.http.middlewares.${{ github.event.repository.name }}-cors.headers.accessControlAllowCredentials=true
+          CORS_HEADERS: traefik.http.middlewares.${{ github.event.repository.name }}-cors.headers.accessControlAllowHeaders=authorization
           CORS_MIDDLEWARE: traefik.http.routers.${{ github.event.repository.name }}.middlewares=${{ github.event.repository.name }}-cors@docker
 
         with:
           host: ${{ secrets.DROPLET_IP }}
           username: root
           key: ${{ secrets.ADMIN_SSH_KEY }}
-          envs:  HOST_LABEL,TLS_CERT_LABEL,TLS_LABEL,ENABLE_LABEL,CORS_METHOD,CORS_ALLOW,CORS_MAX_AGE,CORS_VARY,CORS_CRED,CORS_MIDDLEWARE
+          envs:  HOST_LABEL,TLS_CERT_LABEL,TLS_LABEL,ENABLE_LABEL,CORS_METHOD,CORS_ALLOW,CORS_MAX_AGE,CORS_VARY,CORS_CRED,CORS_HEADERS,CORS_MIDDLEWARE
           script: |
             VAULT_ADDR='https://vault.todanni.com' VAULT_API_SERVICE_TOKEN=${{ secrets.VAULT_TOKEN }} vault kv get -format yaml -field data  ci/${{ github.event.repository.name }} > .env
             sed -i 's/: /=/g' .env
@@ -110,7 +111,7 @@ jobs:
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p "${{ secrets.DOCKER_PASSWORD }}"
             docker pull ${{ github.repository }}:latest
             docker rm -f ${{ github.event.repository.name }} 
-            docker run -d --name ${{ github.event.repository.name }} --network ${{ secrets.NETWORK }} -l "$HOST_LABEL" -l "$TLS_LABEL" -l "$TLS_CERT_LABEL" -l "$ENABLE_LABEL" -l "$CORS_ALLOW" -l "$CORS_METHOD" -l "$CORS_MAX_AGE" -l "$CORS_VARY" -l "$CORS_CRED" -l "$CORS_MIDDLEWARE" --env-file .env  ${{ github.repository }}
+            docker run -d --name ${{ github.event.repository.name }} --network ${{ secrets.NETWORK }} -l "$HOST_LABEL" -l "$TLS_LABEL" -l "$TLS_CERT_LABEL" -l "$ENABLE_LABEL" -l "$CORS_ALLOW" -l "$CORS_METHOD" -l "$CORS_MAX_AGE" -l "$CORS_VARY" -l "$CORS_CRED" -l "$CORS_HEADERS" -l "$CORS_MIDDLEWARE" --env-file .env  ${{ github.repository }}
       -
         name: Send discord failure message
         if: ${{ failure() }}
