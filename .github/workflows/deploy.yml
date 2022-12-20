@@ -87,18 +87,21 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ## Traefik labels
           HOST_LABEL: traefik.http.routers.${{ github.event.repository.name }}.rule=Host(`api.todanni.com`)
-          MIDDLEWARE_LABEL: traefik.http.routers.${{ github.event.repository.name }}.middlewares=https-redirect@docker
-          TLS_HOST_LABEL: traefik.http.routers.${{ github.event.repository.name }}-tls.rule=Host(`api.todanni.com`)
-
-          TLS_CERT_LABEL: traefik.http.routers.${{ github.event.repository.name }}-tls.tls.certresolver=letsencrypt
-          TLS_LABEL: traefik.http.routers.${{ github.event.repository.name }}-tls.tls=true
+          TLS_CERT_LABEL: traefik.http.routers.${{ github.event.repository.name }}.tls.certresolver=letsencrypt
+          TLS_LABEL: traefik.http.routers.${{ github.event.repository.name }}.tls=true
           ENABLE_LABEL: traefik.enable=true
+          
+          CORS_METHOD: traefik.http.middlewares.${{ github.event.repository.name }}-cors.headers.accessControlAllowMethods=*
+          CORS_ALLOW: traefik.http.middlewares.${{ github.event.repository.name }}-cors.headers.accessControlAllowOriginList=https://todanni.com
+          CORS_MAX_AGE: traefik.http.middlewares.${{ github.event.repository.name }}-cors.headers.accessControlMaxAge=100
+          CORS_VARY: traefik.http.middlewares.${{ github.event.repository.name }}-cors.headers.addVaryHeader=true
+          CORS_MIDDLEWARE: traefik.http.routers.${{ github.event.repository.name }}.middlewares=${{ github.event.repository.name }}-cors@docker
 
         with:
           host: ${{ secrets.DROPLET_IP }}
           username: root
           key: ${{ secrets.ADMIN_SSH_KEY }}
-          envs:  TLS_HOST_LABEL,TLS_CERT_LABEL,TLS_LABEL,ENABLE_LABEL
+          envs:  HOST_LABEL,TLS_CERT_LABEL,TLS_LABEL,ENABLE_LABEL,CORS_METHOD,CORS_ALLOW,CORS_MAX_AGE,CORS_VARY,CORS_MIDDELWARE
           script: |
             VAULT_ADDR='https://vault.todanni.com' VAULT_API_SERVICE_TOKEN=${{ secrets.VAULT_TOKEN }} vault kv get -format yaml -field data  ci/${{ github.event.repository.name }} > .env
             sed -i 's/: /=/g' .env
@@ -106,7 +109,7 @@ jobs:
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p "${{ secrets.DOCKER_PASSWORD }}"
             docker pull ${{ github.repository }}:latest
             docker rm -f ${{ github.event.repository.name }} 
-            docker run -d --name ${{ github.event.repository.name }} --network ${{ secrets.NETWORK }} --label "$TLS_HOST_LABEL" --label "$TLS_LABEL" --label "$TLS_CERT_LABEL" --label "$ENABLE_LABEL" --env-file .env  ${{ github.repository }}
+            docker run -d --name ${{ github.event.repository.name }} --network ${{ secrets.NETWORK }} -l "$HOST_LABEL" -l "$TLS_LABEL" -l "$TLS_CERT_LABEL" -l "$ENABLE_LABEL" -l "$CORS_ALLOW" -l "$CORS_METHOD" -l "$CORS_MAX_AGE" -l "$CORS_VARY" -l "$CORS_MIDDLEWARE" --env-file .env  ${{ github.repository }}
       -
         name: Send discord failure message
         if: ${{ failure() }}
