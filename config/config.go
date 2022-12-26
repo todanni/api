@@ -11,6 +11,7 @@ type Config struct {
 	DBName            string `env:"POSTGRES_NAME,required"`
 	SigningKey        string `env:"SIGNING_KEY,required"`
 	GoogleCredentials string `env:"GOOGLE_CREDENTIALS,required"`
+	SendGridAPIKey    string `env:"SENDGRID_API_KEY"`
 }
 
 func NewFromEnv() (Config, error) {
