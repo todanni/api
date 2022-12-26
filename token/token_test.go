@@ -17,7 +17,9 @@ const (
 func TestToken_EndToEnd_NoDashboardsAndProjects(t *testing.T) {
 	// Issue a token
 	accessToken := NewAccessToken()
-	accessToken.SetUserID(1)
+	id := uuid.New().String()
+	id = id[:8]
+	accessToken.SetUserID(id)
 
 	// Set a token with no projects
 	projects := make([]models.Project, 0)
@@ -49,7 +51,9 @@ func TestToken_EndToEnd_NoDashboardsAndProjects(t *testing.T) {
 func TestToken_EndToEnd_OneDashboardAndProject(t *testing.T) {
 	// Issue a token
 	accessToken := NewAccessToken()
-	accessToken.SetUserID(1)
+	id := uuid.New().String()
+	id = id[:8]
+	accessToken.SetUserID(id)
 
 	// Set a token with no projects
 	projects := []models.Project{
@@ -58,12 +62,10 @@ func TestToken_EndToEnd_OneDashboardAndProject(t *testing.T) {
 				ID: 1,
 			},
 			Name:  "Project",
-			Owner: 1,
+			Owner: id,
 			Members: []models.User{
 				{
-					Model: gorm.Model{
-						ID: 1,
-					},
+					ID: id,
 				},
 			},
 		},
