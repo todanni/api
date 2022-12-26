@@ -38,7 +38,7 @@ func TestToken_EndToEnd_NoDashboardsAndProjects(t *testing.T) {
 	require.NoError(t, err)
 
 	userID := parsedToken.GetUserID()
-	require.Equal(t, uint(1), userID)
+	require.Equal(t, id, userID)
 
 	dashboardIDIsAllowed := parsedToken.HasDashboardPermission(uuid.New())
 	require.Equal(t, false, dashboardIDIsAllowed)
@@ -90,7 +90,7 @@ func TestToken_EndToEnd_OneDashboardAndProject(t *testing.T) {
 	require.NoError(t, err)
 
 	userID := parsedToken.GetUserID()
-	require.Equal(t, uint(1), userID)
+	require.Equal(t, id, userID)
 
 	dashboardIDIsAllowed := parsedToken.HasDashboardPermission(dashboardID)
 	require.Equal(t, true, dashboardIDIsAllowed)

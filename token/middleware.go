@@ -26,13 +26,13 @@ func NewAuthMiddleware(signingKey string) *AuthMiddleware {
 
 func (m *AuthMiddleware) JwtMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//accessToken, err := m.checkAuthHeader(r)
-		//if err != nil {
-		//	log.Infof("couldn't find valid access token in cookie: %v", err)
-		//	accessToken, err = m.checkCookieValue(r)
-		//}
+		accessToken, err := m.checkAuthHeader(r)
+		if err != nil {
+			log.Infof("couldn't find valid access token in cookie: %v", err)
+			accessToken, err = m.checkCookieValue(r)
+		}
 
-		accessToken, err := m.checkCookieValue(r)
+		//accessToken, err := m.checkCookieValue(r)
 
 		if err != nil {
 			log.Error(err)
