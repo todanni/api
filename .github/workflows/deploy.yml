@@ -91,7 +91,7 @@ jobs:
           TLS_LABEL: traefik.http.routers.${{ github.event.repository.name }}.tls=true
           ENABLE_LABEL: traefik.enable=true
           
-          CORS_METHOD: traefik.http.middlewares.${{ github.event.repository.name }}-cors.headers.accessControlAllowMethods=*
+          CORS_METHOD: traefik.http.middlewares.${{ github.event.repository.name }}-cors.headers.accessControlAllowMethods=GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD
           CORS_ALLOW: traefik.http.middlewares.${{ github.event.repository.name }}-cors.headers.accessControlAllowOriginList=https://todanni.com
           CORS_MAX_AGE: traefik.http.middlewares.${{ github.event.repository.name }}-cors.headers.accessControlMaxAge=100
           CORS_VARY: traefik.http.middlewares.${{ github.event.repository.name }}-cors.headers.addVaryHeader=true
