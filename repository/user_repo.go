@@ -9,6 +9,7 @@ import (
 type UserRepository interface {
 	CreateUser(user models.User) (models.User, error)
 	GetUserByEmail(email string) (models.User, error)
+	GetUserByID(id string) (models.User, error)
 }
 
 type userRepo struct {
@@ -29,5 +30,11 @@ func (r *userRepo) CreateUser(user models.User) (models.User, error) {
 func (r *userRepo) GetUserByEmail(email string) (models.User, error) {
 	var user models.User
 	result := r.db.Where("email = ?", email).First(&user)
+	return user, result.Error
+}
+
+func (r *userRepo) GetUserByID(id string) (models.User, error) {
+	var user models.User
+	result := r.db.Raw("SELECT * FROM users WHERE id = ?", id).Scan(&user)
 	return user, result.Error
 }

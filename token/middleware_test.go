@@ -58,7 +58,6 @@ func (s *AuthMiddlewareTestSuite) Test_AccessToken_Good() {
 
 func (s *AuthMiddlewareTestSuite) Test_NoAuthHeader_CookiePresent() {
 	router := mux.NewRouter()
-
 	mw := NewAuthMiddleware(signingKey)
 
 	router.Use(mw.JwtMiddleware)

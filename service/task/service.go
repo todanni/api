@@ -58,6 +58,8 @@ func (s *taskService) CreateTaskHandler(w http.ResponseWriter, r *http.Request) 
 
 	// Check if the user belongs to the specified in the request project
 	if !accessToken.HasProjectPermission(createRequest.ProjectID) {
+		log.Infof("user with ID %s doesn't have permissions for project %d",
+			userID, createRequest.ProjectID)
 		http.Error(w, "user unauthorized for this project", http.StatusForbidden)
 		return
 	}
@@ -106,7 +108,15 @@ func (s *taskService) ListTasksHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tasks, err := s.taskRepo.ListTasksByUser(userID)
+	projectID := r.URL.Query().Get("project_id")
+	var tasks []models.Task
+	var err error
+	if projectID != "" {
+		tasks, err = s.taskRepo.ListTasksByProject(projectID)
+	} else {
+		tasks, err = s.taskRepo.ListTasksByUser(userID)
+	}
+
 	if err != nil {
 		http.Error(w, "couldn't look up tasks for user", http.StatusInternalServerError)
 		return

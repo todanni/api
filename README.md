@@ -19,7 +19,7 @@
   </a>
 
   <p align="center">
-    This is the base template repository used for all the Golang ToDanni services.
+    This is the main backend service for all ToDanni APIs, written using Go. 
     <br />
     <a href="https://github.com/danni-popova/toDanni"><strong>Explore the docs »</strong></a>
     <br />
@@ -57,8 +57,8 @@ ToDanni is a collaborative task manager used to share and manage workloads betwe
 ### Built With
 
 * [Go]()
-* [React]()
-* [Docker]()
+* [GORM]()
+* [Gorilla MUX]()
 
 
 <!-- GETTING STARTED -->
@@ -69,22 +69,10 @@ To get a local copy up and running follow these simple steps.
 
 
 ### Prerequisites
+There are environment variables the service will expect to be set in order for it to run such as database credentials, OAuth 2.0 config and signing key for signing and parsing JWTs.
 
-This is an example of how to list things you need to use the software and how to install them.
-* npm
 ```sh
-npm install npm@latest -g
-```
 
-### Installation
-
-1. Clone the repo
-```sh
-git clone 
-```
-2. Install NPM packages
-```sh
-npm install
 ```
 
 
@@ -125,7 +113,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Danni Popova -  danni.develop@gmail.com
+Danni Popova -  admin@todanni.com
 
 Project Link: [https://github.com/danni-popova/todanni](https://github.com/danni-popova/todanni)
 
