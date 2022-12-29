@@ -96,7 +96,7 @@ jobs:
           CORS_MAX_AGE: traefik.http.middlewares.${{ github.event.repository.name }}-cors.headers.accessControlMaxAge=100
           CORS_VARY: traefik.http.middlewares.${{ github.event.repository.name }}-cors.headers.addVaryHeader=true
           CORS_CRED: traefik.http.middlewares.${{ github.event.repository.name }}-cors.headers.accessControlAllowCredentials=true
-          CORS_HEADERS: traefik.http.middlewares.${{ github.event.repository.name }}-cors.headers.accessControlAllowHeaders=authorization
+          CORS_HEADERS: traefik.http.middlewares.${{ github.event.repository.name }}-cors.headers.accessControlAllowHeaders=authorization,content-type
           CORS_MIDDLEWARE: traefik.http.routers.${{ github.event.repository.name }}.middlewares=${{ github.event.repository.name }}-cors@docker
 
         with:
