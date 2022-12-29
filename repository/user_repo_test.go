@@ -29,8 +29,6 @@ func (s *UserRepositoryTestSuite) Test_CreateUser() {
 	email := "user@email.com"
 
 	result, err := repo.CreateUser(models.User{
-		FirstName:  "User",
-		LastName:   "Name",
 		Email:      email,
 		ProfilePic: "https://imgur.com/me.png",
 	})
