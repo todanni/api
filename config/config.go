@@ -12,6 +12,8 @@ type Config struct {
 	SigningKey        string `env:"SIGNING_KEY,required"`
 	GoogleCredentials string `env:"GOOGLE_CREDENTIALS,required"`
 	SendGridAPIKey    string `env:"SENDGRID_API_KEY"`
+	Domain            string `env:"DOMAIN,required"`
+	RedirectURL       string `env:"REDIRECT_URL,required"`
 }
 
 func NewFromEnv() (Config, error) {

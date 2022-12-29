@@ -167,11 +167,11 @@ func (s *authService) CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		Value:    string(signedToken),
 		Path:     "/",
 		HttpOnly: true,
-		Domain:   "localhost",
+		Domain:   s.config.Domain,
 	})
 
 	w.Header().Set("Content-Type", "application/json")
-	http.Redirect(w, r, "http://localhost:3000/tasks", http.StatusFound)
+	http.Redirect(w, r, s.config.RedirectURL, http.StatusFound)
 }
 
 type GoogleUserInfo struct {
