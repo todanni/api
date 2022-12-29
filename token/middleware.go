@@ -37,7 +37,6 @@ func (m *AuthMiddleware) JwtMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		log.Infof("Acess token: %s", accessTokenString)
 		accessToken, err := m.parseToken(accessTokenString)
 		if err != nil {
 			log.Error(err)
