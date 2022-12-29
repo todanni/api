@@ -55,7 +55,7 @@ func main() {
 	project.NewProjectService(r, *authMiddleware, projectRepo)
 	task.NewTaskService(r, taskRepo, *authMiddleware)
 	dashboard.NewDashboardService(r, dashboardRepo)
-	auth.NewAuthService(r, cfg, userRepo, dashboardRepo, projectRepo)
+	auth.NewAuthService(r, cfg, userRepo, dashboardRepo, projectRepo, *authMiddleware)
 
 	// Start the servers and listen
 	log.Fatal(http.ListenAndServe(":8083", r))

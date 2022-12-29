@@ -35,6 +35,12 @@ func (r *userRepo) GetUserByEmail(email string) (models.User, error) {
 
 func (r *userRepo) GetUserByID(id string) (models.User, error) {
 	var user models.User
-	result := r.db.First(&user, id)
+	result := r.db.Raw("SELECT * FROM users WHERE id = ?", id).Scan(&user)
 	return user, result.Error
 }
+
+//var projects []models.Project
+//result := r.db.Raw(
+//"SELECT * FROM projects INNER JOIN user_projects up on projects.id = up.project_id WHERE user_id=?", userID).
+//Scan(&projects)
+//return projects, result.Error

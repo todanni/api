@@ -24,7 +24,7 @@ import (
 
 type AuthService interface {
 	CallbackHandler(w http.ResponseWriter, r *http.Request)
-	//UserInfoHandler(w http.ResponseWriter, r *http.Request)
+	GetUserHandler(w http.ResponseWriter, r *http.Request)
 }
 
 type authService struct {
@@ -32,6 +32,7 @@ type authService struct {
 	userRepo      repository.UserRepository
 	dashboardRepo repository.DashboardRepository
 	projectRepo   repository.ProjectRepository
+	middleware    token.AuthMiddleware
 	config        config.Config
 	oauthConfig   *oauth2.Config
 }
@@ -42,6 +43,7 @@ func NewAuthService(
 	userRepo repository.UserRepository,
 	dashboardRepo repository.DashboardRepository,
 	projectRepo repository.ProjectRepository,
+	mw token.AuthMiddleware,
 ) AuthService {
 	server := &authService{
 		config:        cfg,
@@ -49,6 +51,7 @@ func NewAuthService(
 		userRepo:      userRepo,
 		dashboardRepo: dashboardRepo,
 		projectRepo:   projectRepo,
+		middleware:    mw,
 	}
 	server.routes()
 	server.createOAuthConfig()
@@ -56,7 +59,6 @@ func NewAuthService(
 }
 
 func (s *authService) createOAuthConfig() {
-	// Create OAuth oauthConfig
 	decodedCredentials, err := b64.StdEncoding.DecodeString(s.config.GoogleCredentials)
 
 	oauthConfig, err := google.ConfigFromJSON(decodedCredentials, scopes.OpenIDScope, scopes.UserinfoEmailScope, scopes.UserinfoProfileScope)
@@ -64,6 +66,33 @@ func (s *authService) createOAuthConfig() {
 		log.Fatalf("Unable to parse client secret file to oauthConfig: %v", err)
 	}
 	s.oauthConfig = oauthConfig
+}
+
+func (s *authService) GetUserHandler(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	userID := params["id"]
+
+	user, err := s.userRepo.GetUserByID(userID)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "couldn't retrieve user", http.StatusInternalServerError)
+		return
+	}
+
+	response := GetUserResponse{
+		ID:          user.ID,
+		DisplayName: user.DisplayName,
+		ProfilePic:  user.ProfilePic,
+	}
+
+	responseBody, err := json.Marshal(response)
+	if err != nil {
+		http.Error(w, "couldn't marshall body", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(responseBody)
 }
 
 func (s *authService) CallbackHandler(w http.ResponseWriter, r *http.Request) {
@@ -81,7 +110,6 @@ func (s *authService) CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//idToken := tok.Extra("id_token").(string)
 	// use the token to request the details about the user
 	userInfo, err := s.getUserInfo(tok.AccessToken)
 	if err != nil {

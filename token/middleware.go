@@ -26,14 +26,19 @@ func NewAuthMiddleware(signingKey string) *AuthMiddleware {
 
 func (m *AuthMiddleware) JwtMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		accessToken, err := m.checkAuthHeader(r)
-		if err != nil {
-			log.Infof("couldn't find valid access token in cookie: %v", err)
-			accessToken, err = m.checkCookieValue(r)
+		accessTokenString, err := m.checkCookieValue(r)
+		if accessTokenString == "" {
+			accessTokenString, err = m.checkAuthHeader(r)
 		}
 
-		//accessToken, err := m.checkCookieValue(r)
+		if err != nil {
+			log.Error(err)
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
 
+		log.Infof("Acess token: %s", accessTokenString)
+		accessToken, err := m.parseToken(accessTokenString)
 		if err != nil {
 			log.Error(err)
 			http.Error(w, err.Error(), http.StatusUnauthorized)
@@ -46,30 +51,27 @@ func (m *AuthMiddleware) JwtMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (m *AuthMiddleware) checkAuthHeader(r *http.Request) (*ToDanniToken, error) {
+func (m *AuthMiddleware) checkAuthHeader(r *http.Request) (string, error) {
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
-		return nil, ErrorEmptyAuthHeader
+		return "", ErrorEmptyAuthHeader
 	}
 
 	parts := strings.Split(authHeader, "Bearer ")
 	if len(parts) != 2 {
-		return nil, ErrorTokenNotPresent
+		return "", ErrorTokenNotPresent
 	}
 
-	requestToken := parts[1]
-	return m.parseToken(requestToken)
+	log.Info("Token Bearer found in request")
+	return parts[1], nil
 }
 
-func (m *AuthMiddleware) checkCookieValue(r *http.Request) (*ToDanniToken, error) {
+func (m *AuthMiddleware) checkCookieValue(r *http.Request) (string, error) {
 	accessTokenCookie, err := r.Cookie(AccessTokenCookieName)
-	// If cookie is not present, check the authorization header
-
 	if err != nil {
-		log.Error(err)
-		return nil, errors.New("access token cookie wasn't set")
+		return "", err
 	}
-	return m.parseToken(accessTokenCookie.Value)
+	return accessTokenCookie.Value, err
 }
 
 func (m *AuthMiddleware) parseToken(tokenString string) (*ToDanniToken, error) {
