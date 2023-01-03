@@ -9,8 +9,8 @@ import (
 type Task struct {
 	ID          uint           `json:"id" gorm:"primarykey"`
 	Title       string         `json:"title"`
-	Description string         `json:"description"`
-	Done        bool           `json:"done"`
+	Description *string        `json:"description"`
+	Done        *bool          `json:"done"`
 	Project     Project        `json:"-"`
 	ProjectID   uint           `json:"project_id"`
 	CreatedBy   string         `json:"created_by"`
