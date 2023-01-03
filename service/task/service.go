@@ -79,7 +79,7 @@ func (s *taskService) CreateTaskHandler(w http.ResponseWriter, r *http.Request) 
 		Done:        &createRequest.Done,
 		ProjectID:   createRequest.ProjectID,
 		CreatedBy:   userID,
-		AssignedTo:  createRequest.AssignedTo,
+		AssignedTo:  &createRequest.AssignedTo,
 		Deadline:    createRequest.Deadline,
 	})
 
@@ -204,9 +204,14 @@ func (s *taskService) UpdateTaskHandler(w http.ResponseWriter, r *http.Request) 
 		Title:       updateRequest.Title,
 		Description: &updateRequest.Description,
 		Done:        &updateRequest.Done,
-		AssignedTo:  updateRequest.AssignedTo,
+		AssignedTo:  &updateRequest.AssignedTo,
 		Deadline:    updateRequest.Deadline,
 	})
+
+	if err != nil {
+		http.Error(w, "couldn't update task", http.StatusInternalServerError)
+		return
+	}
 
 	responseBody, err := json.Marshal(updatedTask)
 	if err != nil {
