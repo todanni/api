@@ -16,5 +16,6 @@ func (s *taskService) routes() {
 	r.HandleFunc("/", s.CreateTaskHandler).Methods(http.MethodPost)
 	r.HandleFunc("/{id}", s.GetTaskHandler).Methods(http.MethodGet)
 	r.HandleFunc("/{id}", s.UpdateTaskHandler).Methods(http.MethodPatch)
+	r.HandleFunc("/{id}/done", s.UpdateTaskDoneHandler).Methods(http.MethodPatch)
 	r.HandleFunc("/{id}", s.DeleteTaskHandler).Methods(http.MethodDelete)
 }

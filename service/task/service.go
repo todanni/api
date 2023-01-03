@@ -218,6 +218,47 @@ func (s *taskService) UpdateTaskHandler(w http.ResponseWriter, r *http.Request) 
 	w.Write(responseBody)
 }
 
+func (s *taskService) UpdateTaskDoneHandler(w http.ResponseWriter, r *http.Request) {
+	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
+
+	userID := accessToken.GetUserID()
+	if userID == "" {
+		http.Error(w, "invalid user ID in token", http.StatusUnauthorized)
+		return
+	}
+	params := mux.Vars(r)
+	taskID := params["id"]
+	task, err := s.taskRepo.GetTaskByID(taskID)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "couldn't look up task", http.StatusInternalServerError)
+		return
+	}
+
+	if !accessToken.HasProjectPermission(task.ProjectID) {
+		http.Error(w, "you don't have access", http.StatusForbidden)
+		return
+	}
+
+	var updateRequest UpdateTaskRequest
+	err = json.NewDecoder(r.Body).Decode(&updateRequest)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	updatedTask, err := s.taskRepo.UpdateTaskDone(taskID, updateRequest.Done)
+
+	responseBody, err := json.Marshal(updatedTask)
+	if err != nil {
+		http.Error(w, "couldn't marshall body", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(responseBody)
+}
+
 func (s *taskService) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
 

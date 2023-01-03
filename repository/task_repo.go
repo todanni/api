@@ -11,6 +11,7 @@ type TaskRepository interface {
 	CreateTask(task models.Task) (models.Task, error)
 	GetTaskByID(taskID string) (models.Task, error)
 	UpdateTask(task models.Task) (models.Task, error)
+	UpdateTaskDone(taskID string, done bool) (models.Task, error)
 	DeleteTask(taskID string) error
 	ListTasksByUser(userID string) ([]models.Task, error)
 	ListTasksByProject(projectID string) ([]models.Task, error)
@@ -49,7 +50,13 @@ func (r *taskRepo) CreateTask(task models.Task) (models.Task, error) {
 }
 
 func (r *taskRepo) UpdateTask(task models.Task) (models.Task, error) {
-	result := r.db.Model(&task).Clauses(clause.Returning{}).Updates(task)
+	result := r.db.Model(&task).Clauses(clause.Returning{}).Updates(map[string]interface{}{"title": task.Title, "description": task.Description, "done": task.Done, "assigned_to": task.AssignedTo, "deadline": task.Deadline})
+	return task, result.Error
+}
+
+func (r *taskRepo) UpdateTaskDone(taskID string, done bool) (models.Task, error) {
+	var task models.Task
+	result := r.db.Model(&task).Where("id = ?", taskID).Clauses(clause.Returning{}).Updates(map[string]interface{}{"done": done})
 	return task, result.Error
 }
 
