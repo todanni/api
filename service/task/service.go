@@ -75,11 +75,11 @@ func (s *taskService) CreateTaskHandler(w http.ResponseWriter, r *http.Request) 
 	// Call DB and persist task
 	task, err := s.taskRepo.CreateTask(models.Task{
 		Title:       createRequest.Title,
-		Description: createRequest.Description,
-		Done:        createRequest.Done,
+		Description: &createRequest.Description,
+		Done:        &createRequest.Done,
 		ProjectID:   createRequest.ProjectID,
 		CreatedBy:   userID,
-		AssignedTo:  createRequest.AssignedTo,
+		AssignedTo:  &createRequest.AssignedTo,
 		Deadline:    createRequest.Deadline,
 	})
 
@@ -202,11 +202,16 @@ func (s *taskService) UpdateTaskHandler(w http.ResponseWriter, r *http.Request) 
 	updatedTask, err := s.taskRepo.UpdateTask(models.Task{
 		ID:          uint(taskIDUint),
 		Title:       updateRequest.Title,
-		Description: updateRequest.Description,
-		Done:        updateRequest.Done,
-		AssignedTo:  updateRequest.AssignedTo,
+		Description: &updateRequest.Description,
+		Done:        &updateRequest.Done,
+		AssignedTo:  &updateRequest.AssignedTo,
 		Deadline:    updateRequest.Deadline,
 	})
+
+	if err != nil {
+		http.Error(w, "couldn't update task", http.StatusInternalServerError)
+		return
+	}
 
 	responseBody, err := json.Marshal(updatedTask)
 	if err != nil {
