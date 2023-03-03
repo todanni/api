@@ -13,10 +13,22 @@ type RoutineRepository interface {
 	ListRoutinesByUser(userID string) ([]models.Routine, error)
 	GetRoutineByID(routineID string) (models.Routine, error)
 	DeleteRoutine(routineID string) error
+	CreateRoutineRecord(record models.RoutineRecord) (models.RoutineRecord, error)
+	DeleteRoutineRecord(record models.RoutineRecord) error
 }
 
 type routineRepo struct {
 	db *gorm.DB
+}
+
+func (r *routineRepo) CreateRoutineRecord(record models.RoutineRecord) (models.RoutineRecord, error) {
+	result := r.db.Create(&record)
+	return record, result.Error
+}
+
+func (r *routineRepo) DeleteRoutineRecord(record models.RoutineRecord) error {
+	result := r.db.Delete(record)
+	return result.Error
 }
 
 func (r *routineRepo) GetRoutineByID(routineID string) (models.Routine, error) {

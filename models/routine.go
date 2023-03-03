@@ -1,6 +1,10 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type Routine struct {
 	gorm.Model
@@ -10,6 +14,6 @@ type Routine struct {
 }
 
 type RoutineRecord struct {
-	Timestamp string `json:"timestamp"`
-	ID        uint   `gorm:"primarykey"`
+	ID        uint      `json:"id"`
+	Timestamp time.Time `json:"timestamp"`
 }

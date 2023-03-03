@@ -21,12 +21,35 @@ type RoutinesService interface {
 	UpdateRoutineHandler(w http.ResponseWriter, r *http.Request)
 	ListRoutinesHandler(w http.ResponseWriter, r *http.Request)
 	DeleteRoutineHandler(w http.ResponseWriter, r *http.Request)
+
+	SaveRoutineRecordHandler(w http.ResponseWriter, r *http.Request)
+	DeleteRoutineRecordHandler(w http.ResponseWriter, r *http.Request)
 }
 
 type routineService struct {
 	router     *mux.Router
 	repo       repository.RoutineRepository
 	middleware token.AuthMiddleware
+}
+
+func (s *routineService) SaveRoutineRecordHandler(w http.ResponseWriter, r *http.Request) {
+	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
+
+	userID := accessToken.GetUserID()
+	if userID == "" {
+		http.Error(w, "invalid user ID in token", http.StatusUnauthorized)
+		return
+	}
+}
+
+func (s *routineService) DeleteRoutineRecordHandler(w http.ResponseWriter, r *http.Request) {
+	accessToken := r.Context().Value(token.AccessTokenContextKey).(*token.ToDanniToken)
+
+	userID := accessToken.GetUserID()
+	if userID == "" {
+		http.Error(w, "invalid user ID in token", http.StatusUnauthorized)
+		return
+	}
 }
 
 func NewRoutineService(router *mux.Router, mw token.AuthMiddleware, repo repository.RoutineRepository) RoutinesService {

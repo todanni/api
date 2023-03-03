@@ -14,6 +14,7 @@ import (
 	"github.com/todanni/api/service/auth"
 	"github.com/todanni/api/service/dashboard"
 	"github.com/todanni/api/service/project"
+	"github.com/todanni/api/service/routine"
 	"github.com/todanni/api/service/task"
 	"github.com/todanni/api/token"
 )
@@ -34,7 +35,13 @@ func main() {
 	}
 
 	// Perform migrations
-	err = db.AutoMigrate(&models.User{}, &models.Dashboard{}, &models.Project{}, &models.Task{})
+	err = db.AutoMigrate(
+		&models.User{},
+		&models.Dashboard{},
+		&models.Project{},
+		&models.Task{},
+		&models.Routine{},
+		&models.RoutineRecord{})
 	if err != nil {
 		log.Fatalf("couldn't auto migrate: %v", err)
 	}
@@ -50,12 +57,14 @@ func main() {
 	projectRepo := repository.NewProjectRepository(db)
 	taskRepo := repository.NewTaskRepository(db)
 	dashboardRepo := repository.NewDashboardRepository(db)
+	routineRepo := repository.NewRoutineRepository(db)
 
 	// Initialise services
 	project.NewProjectService(r, *authMiddleware, projectRepo)
 	task.NewTaskService(r, taskRepo, *authMiddleware)
 	dashboard.NewDashboardService(r, dashboardRepo)
 	auth.NewAuthService(r, cfg, userRepo, dashboardRepo, projectRepo, *authMiddleware)
+	routine.NewRoutineService(r, *authMiddleware, routineRepo)
 
 	// Start the servers and listen
 	log.Fatal(http.ListenAndServe(":8083", r))
